@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:proste_bezier_curve/proste_bezier_curve.dart';
+import 'package:o_bezier/proste_bezier_curve.dart';
 
 void main() {
   runApp(MyApp());

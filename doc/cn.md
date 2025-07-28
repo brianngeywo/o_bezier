@@ -9,7 +9,7 @@
 
 普通的根据元素位置进行描点的方式会留出空隙，要计算出控制点后才可以完全填充元素信息，例如下面图片，使用的点坐标相同，但是裁剪出的样式不同，我想提供的功能就是尽可能还原设计样式。而且使用插件之后只需要确认每个点的坐标即可，不用进行其他的复杂计算，代码也更简洁。
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/contrast.png" style="width: 300px;" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/contrast.png" style="width: 300px;" />
 
 - 普通代码
 
@@ -84,11 +84,11 @@ Stack(
 ## 二阶贝塞尔曲线
 
 <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/top.png" />
-  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/bottom.png" />
+  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/top.png" />
+  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/bottom.png" />
 </div>
 
-<a href="https://github.com/xyhxx/program_preview/tree/master/proste_bezier_curve" target="_blank">更多预览图</a>
+<a href="https://github.com/xyhxx/program_preview/tree/master/o_bezier" target="_blank">更多预览图</a>
 
 ### 示例
 
@@ -284,11 +284,11 @@ class CustomSelfClipper2 extends CustomClipper<Path> {
 ##  三阶贝塞尔曲线
 
 <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/third3.png" />
-  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/third2.png" />
+  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/third3.png" />
+  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/third2.png" />
 </div>
 
-<a href="https://github.com/xyhxx/program_preview/tree/master/proste_bezier_curve" target="_blank">更多预览图</a>
+<a href="https://github.com/xyhxx/program_preview/tree/master/o_bezier" target="_blank">更多预览图</a>
 
 ### 示例
 
@@ -393,11 +393,11 @@ ClipPath(
 
 四个点的位置坐标可以参考下图，起始和结束点分别为p1和p4，<a href="https://www.desmos.com/calculator/cahqdxeshd?lang=zh-CN" target="_blank">图片示例网址。</a>你可以理解为四个点形成了一个长方形，四个坐标为四个点的位置，曲线会在长方形内进行绘制。
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/desmos.png" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/desmos.png" />
 
 我们也可以通过三阶贝塞尔函数画出单弧线图，只需要p1和p4在同一边，但是这样会出现一开始声明的那个问题，不会紧贴底部。
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/desmos4.png" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/desmos4.png" />
 
 + ThirdOrderBezierCurveDots 三阶贝塞尔控制点坐标
 
@@ -456,4 +456,4 @@ class CustomSelfClipper1 extends CustomClipper<Path> {
 
 ```
 
-**如果有什么问题欢迎提交到<a href="https://github.com/xyhxx/proste_bezier_curve/issues" target="_blank">issues</a>,我会在看到的第一时间进行处理，感谢！**
+**如果有什么问题欢迎提交到<a href="https://github.com/xyhxx/o_bezier/issues" target="_blank">issues</a>,我会在看到的第一时间进行处理，感谢！**

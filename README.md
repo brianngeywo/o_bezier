@@ -12,7 +12,7 @@ The control points of Bezier curve are obtained through data calculation, and th
 The common method of tracing points according to the position of elements will leave a gap. Only after the control points are calculated can the element information be completely filled. For example, in the following picture, the coordinates of the points used are the same, but the styles cut out are different. The function I want to provide is to restore the design style as much as possible. And after using the package, you only need to confirm the coordinates of each point, without other complex calculations, and the code is more concise.
 
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/contrast.png" style="width: 300px;" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/contrast.png" style="width: 300px;" />
 
 - draw your own
 
@@ -87,11 +87,11 @@ Stack(
 ## Second order Bezier curve
 
 <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/top.png" />
-  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/bottom.png" />
+  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/top.png" />
+  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/bottom.png" />
 </div>
 
-<a href="https://github.com/xyhxx/program_preview/tree/master/proste_bezier_curve" target="_blank">more preview</a>
+<a href="https://github.com/xyhxx/program_preview/tree/master/o_bezier" target="_blank">more preview</a>
 
 ### Examples
 
@@ -288,11 +288,11 @@ class CustomSelfClipper2 extends CustomClipper<Path> {
 ##  Third order Bezier curve
 
 <div style="display: flex; align-items: flex-start; justify-content: space-between;">
-  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/third3.png" />
-  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/third2.png" />
+  <img style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/third3.png" />
+  <img  style="width: 200px;" src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/third2.png" />
 </div>
 
-<a href="https://github.com/xyhxx/program_preview/tree/master/proste_bezier_curve" target="_blank">more preview</a>
+<a href="https://github.com/xyhxx/program_preview/tree/master/o_bezier" target="_blank">more preview</a>
 
 ### Examples
 
@@ -397,11 +397,11 @@ ClipPath(
 
 The position coordinates of the four points can refer to the figure below. The starting and ending points are P1 and P4 respectively.<a href="https://www.desmos.com/calculator/cahqdxeshd?lang=en" target="_blank">Picture sample URL。</a>You can understand that four points form a rectangle, and the four coordinates are the positions of the four points. The curve will be drawn in the rectangle.
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/desmos.png" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/desmos.png" />
 
 We can also draw a single arc graph through the third-order Bessel function, need P1 and P4 are on the same side，But that brings up the problem that was stated at the beginning，The arc does not cling to the bottom.
 
-<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/proste_bezier_curve/desmos4.png" />
+<img src="https://raw.githubusercontent.com/xyhxx/program_preview/master/o_bezier/desmos4.png" />
 
 + `ThirdOrderBezierCurveDots` Coordinates of third order Bezier curve control points
 
@@ -460,4 +460,4 @@ class CustomSelfClipper1 extends CustomClipper<Path> {
 
 ```
 
-**If you have any issue, please submit them to <a href="https://github.com/xyhxx/proste_bezier_curve/issues" target="_blank">issues</a>, I will deal with them as soon as I see them. Thank you!**
+**If you have any issue, please submit them to <a href="https://github.com/xyhxx/o_bezier/issues" target="_blank">issues</a>, I will deal with them as soon as I see them. Thank you!**

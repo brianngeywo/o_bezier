@@ -1,10 +1,10 @@
-library proste_bezier_curve;
+library o_bezier;
 
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:proste_bezier_curve/utils/type/index.dart';
-export 'package:proste_bezier_curve/utils/type/index.dart';
+import 'package:o_bezier/utils/type/index.dart';
+export 'package:o_bezier/utils/type/index.dart';
 
 /// 确定贝塞尔曲线位置
 enum ClipPosition {
