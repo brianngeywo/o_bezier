@@ -4,41 +4,109 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:o_bezier/utils/type/index.dart';
+
 export 'package:o_bezier/utils/type/index.dart';
 
-/// 确定贝塞尔曲线位置
+// by brian opicho
+
+/// Defines where the Bézier curve will be clipped relative to the widget.
+///
+/// Flutter’s coordinate system:
+/// - The origin **(0,0)** is always the **top‑left corner** of the widget.
+/// - `dx` increases → to the **right**.
+/// - `dy` increases ↓ to the **bottom**.
+///
+/// When using [ClipPosition]:
+/// - **left** → curve runs vertically along the **left edge**, starting at `(0,0)`.
+/// - **bottom** → curve runs horizontally along the **bottom edge**, with `(0,0)` still top‑left, but the curve path is drawn near `dy = size.height`.
+/// - **right** → curve runs vertically along the **right edge**, starting from `(size.width, 0)`.
+/// - **top** → curve runs horizontally along the **top edge**, starting at `(0,0)` and moving right.
+///
+/// Example:
+/// ```dart
+/// ClipPath(
+///   clipper: ProsteBezierCurve(
+///     list: [
+///       BezierCurveSection(
+///         start: Offset(0, 30),
+///         top: Offset(50, 10),
+///         end: Offset(100, 30),
+///       ),
+///     ],
+///     position: ClipPosition.bottom,
+///   ),
+///   child: Container(color: Colors.blue, height: 200),
+/// )
+/// ```
 enum ClipPosition {
-  /// 绘制在元素左侧
+  /// Curve will be drawn along the **left edge** of the widget.
+  ///
+  /// `(0,0)` is the **top‑left** corner.
+  /// Curve progresses **downward** along the left border.
   left,
 
-  /// 绘制在元素底部
+  /// Curve will be drawn along the **bottom edge** of the widget.
+  ///
+  /// `(0,0)` is still **top‑left**, but the curve will be positioned near
+  /// `dy = size.height` (bottom boundary).
   bottom,
 
-  /// 绘制在元素右侧
+  /// Curve will be drawn along the **right edge** of the widget.
+  ///
+  /// `(0,0)` is still top‑left, but the path starts drawing
+  /// from `(size.width, 0)` downward along the right boundary.
   right,
 
-  /// 绘制在元素顶部
+  /// Curve will be drawn along the **top edge** of the widget.
+  ///
+  /// `(0,0)` is the top‑left corner.
+  /// Curve progresses **horizontally** toward the right along the top boundary.
   top,
 }
 
-/// 创建并返回贝塞尔曲线切割路径
+/// A [CustomClipper] that creates a path with **quadratic Bézier curves**.
+///
+/// This is typically used to create smooth, curved edges for containers.
+///
+/// Example:
+/// ```dart
+/// ClipPath(
+///   clipper: ProsteBezierCurve(
+///     list: [
+///       BezierCurveSection(
+///         start: Offset(0, 50),
+///         top: Offset(100, 0),
+///         end: Offset(200, 50),
+///       ),
+///     ],
+///     position: ClipPosition.top,
+///   ),
+///   child: Container(
+///     height: 200,
+///     color: Colors.purple,
+///   ),
+/// )
+/// ```
 class ProsteBezierCurve extends CustomClipper<Path> {
-  /// 是否重绘clip对象
+  /// Whether the clip should redraw if [CustomClipper.shouldReclip] is called.
   bool reclip;
 
-  /// 绘制贝塞尔曲线数据
+  /// A list of curve definitions that describe the Bézier sections to draw.
   List<BezierCurveSection> list;
 
-  /// 贝塞尔曲线绘制位置
+  /// Defines which side of the widget will have the curved edge.
   ClipPosition position;
 
   ProsteBezierCurve({
     required this.list,
     this.reclip = true,
     this.position = ClipPosition.left,
-  }) : assert(list.length > 0);
+  }) : assert(list.isNotEmpty);
 
-  /// 计算贝塞尔曲线的画点数据
+  /// Calculates the quadratic Bézier control points based on a [BezierCurveSection].
+  ///
+  /// This uses the standard quadratic Bézier formula to compute the
+  /// control points needed for drawing the curve.
   static BezierCurveDots calcCurveDots(BezierCurveSection param) {
     double x = (param.top.dx -
             (param.start.dx * pow((1 - param.proportion), 2) +
@@ -52,15 +120,15 @@ class ProsteBezierCurve extends CustomClipper<Path> {
     return BezierCurveDots(x, y, param.end.dx, param.end.dy);
   }
 
-  /// 遍历绘画贝塞尔曲线
+  /// Iterates through the list of sections and adds them to the [Path].
   void _eachPath(List<BezierCurveSection> list, Path path) {
-    list.forEach((element) {
+    for (var element in list) {
       BezierCurveDots item = calcCurveDots(element);
       path.quadraticBezierTo(item.x1, item.y1, item.x2, item.y2);
-    });
+    }
   }
 
-  /// 获取贝塞尔曲线路径
+  /// Builds the clipping path depending on the [position].
   @override
   Path getClip(Size size) {
     Path path = Path();
@@ -119,24 +187,48 @@ class ProsteBezierCurve extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => reclip;
 }
 
-/// 创建并返回三阶贝塞尔曲线切割路径
+/// A [CustomClipper] that creates a path with **cubic (third-order) Bézier curves**.
+///
+/// This allows for smoother, more complex curves compared to quadratic curves.
+///
+/// Example:
+/// ```dart
+/// ClipPath(
+///   clipper: ProsteThirdOrderBezierCurve(
+///     list: [
+///       ThirdOrderBezierCurveSection(
+///         p1: Offset(0, 50),
+///         p2: Offset(50, 0),
+///         p3: Offset(150, 100),
+///         p4: Offset(200, 50),
+///         smooth: 0.5,
+///       ),
+///     ],
+///     position: ClipPosition.bottom,
+///   ),
+///   child: Container(
+///     height: 200,
+///     color: Colors.orange,
+///   ),
+/// )
+/// ```
 class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
-  /// 是否重绘clip对象
+  /// Whether the clip should redraw if [CustomClipper.shouldReclip] is called.
   bool reclip;
 
-  /// 绘制贝塞尔曲线数据
+  /// A list of third-order curve definitions that describe the cubic Bézier sections to draw.
   List<ThirdOrderBezierCurveSection> list;
 
-  /// 贝塞尔曲线绘制位置
+  /// Defines which side of the widget will have the curved edge.
   ClipPosition position;
 
   ProsteThirdOrderBezierCurve({
     required this.list,
     this.position = ClipPosition.left,
     this.reclip = true,
-  }) : assert(list.length > 0);
+  }) : assert(list.isNotEmpty);
 
-  /// 计算三阶贝塞尔曲线的画点数据
+  /// Calculates the cubic Bézier control points based on a [ThirdOrderBezierCurveSection].
   static ThirdOrderBezierCurveDots calcCurveDots(
       ThirdOrderBezierCurveSection param) {
     double x0 = param.p1.dx,
@@ -176,15 +268,15 @@ class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
         resultX1, resultY1, resultX2, resultY2, param.p4.dx, param.p4.dy);
   }
 
-  /// 遍历绘制曲线
+  /// Iterates through the list of sections and adds them to the [Path].
   void _eachPath(List<ThirdOrderBezierCurveSection> list, Path path) {
-    list.forEach((element) {
+    for (var element in list) {
       ThirdOrderBezierCurveDots item = calcCurveDots(element);
       path.cubicTo(item.x1, item.y1, item.x2, item.y2, item.x3, item.y3);
-    });
+    }
   }
 
-  /// 获取三阶贝塞尔曲线路径
+  /// Builds the clipping path depending on the [position].
   @override
   Path getClip(Size size) {
     Path path = Path();
