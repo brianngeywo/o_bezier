@@ -11,16 +11,20 @@ export 'package:o_bezier/utils/type/index.dart';
 
 /// Defines where the Bézier curve will be clipped relative to the widget.
 ///
-/// Flutter’s coordinate system:
+/// Flutter's coordinate system:
 /// - The origin **(0,0)** is always the **top‑left corner** of the widget.
 /// - `dx` increases → to the **right**.
 /// - `dy` increases ↓ to the **bottom**.
 ///
 /// When using [ClipPosition]:
-/// - **left** → curve runs vertically along the **left edge**, starting at `(0,0)`.
-/// - **bottom** → curve runs horizontally along the **bottom edge**, with `(0,0)` still top‑left, but the curve path is drawn near `dy = size.height`.
-/// - **right** → curve runs vertically along the **right edge**, starting from `(size.width, 0)`.
-/// - **top** → curve runs horizontally along the **top edge**, starting at `(0,0)` and moving right.
+/// - **left** → curve runs vertically along the **left edge**. The curve starts from
+///   the first point in your curve definition and the remaining area forms a rectangle.
+/// - **bottom** → curve runs horizontally along the **bottom edge**. The curve follows
+///   your defined points along the bottom boundary.
+/// - **right** → curve runs vertically along the **right edge**. The curve follows
+///   your defined points along the right boundary.
+/// - **top** → curve runs horizontally along the **top edge**. The curve follows
+///   your defined points along the top boundary.
 ///
 /// Example:
 /// ```dart
@@ -41,32 +45,38 @@ export 'package:o_bezier/utils/type/index.dart';
 enum ClipPosition {
   /// Curve will be drawn along the **left edge** of the widget.
   ///
-  /// `(0,0)` is the **top‑left** corner.
-  /// Curve progresses **downward** along the left border.
+  /// The path starts at (0,0), goes to the first curve point, follows the curve
+  /// vertically downward, then completes a rectangle back to the starting point.
   left,
 
   /// Curve will be drawn along the **bottom edge** of the widget.
   ///
-  /// `(0,0)` is still **top‑left**, but the curve will be positioned near
-  /// `dy = size.height` (bottom boundary).
+  /// The path forms three sides of a rectangle, then follows your curve definition
+  /// along the bottom edge to create the clipped shape.
   bottom,
 
   /// Curve will be drawn along the **right edge** of the widget.
   ///
-  /// `(0,0)` is still top‑left, but the path starts drawing
-  /// from `(size.width, 0)` downward along the right boundary.
+  /// The path forms three sides of a rectangle, then follows your curve definition
+  /// along the right edge to create the clipped shape.
   right,
 
   /// Curve will be drawn along the **top edge** of the widget.
   ///
-  /// `(0,0)` is the top‑left corner.
-  /// Curve progresses **horizontally** toward the right along the top boundary.
+  /// The path forms three sides of a rectangle, then follows your curve definition
+  /// along the top edge to create the clipped shape.
   top,
 }
 
 /// A [CustomClipper] that creates a path with **quadratic Bézier curves**.
 ///
-/// This is typically used to create smooth, curved edges for containers.
+/// This clipper takes a list of [BezierCurveSection] objects and creates smooth
+/// curved edges on the specified side of a widget. Each section defines a
+/// quadratic Bézier curve using start, control (top), and end points.
+///
+/// The curve calculations use a proportion value to determine the curve's shape,
+/// with the formula for quadratic Bézier curves applied to compute the actual
+/// control points needed for the path.
 ///
 /// Example:
 /// ```dart
@@ -75,8 +85,9 @@ enum ClipPosition {
 ///     list: [
 ///       BezierCurveSection(
 ///         start: Offset(0, 50),
-///         top: Offset(100, 0),
+///         top: Offset(100, 0),      // Control point
 ///         end: Offset(200, 50),
+///         proportion: 0.5,          // Default proportion for curve calculation
 ///       ),
 ///     ],
 ///     position: ClipPosition.top,
@@ -92,6 +103,7 @@ class ProsteBezierCurve extends CustomClipper<Path> {
   bool reclip;
 
   /// A list of curve definitions that describe the Bézier sections to draw.
+  /// Each section represents one quadratic Bézier curve segment.
   List<BezierCurveSection> list;
 
   /// Defines which side of the widget will have the curved edge.
@@ -103,24 +115,36 @@ class ProsteBezierCurve extends CustomClipper<Path> {
     this.position = ClipPosition.left,
   }) : assert(list.isNotEmpty);
 
-  /// Calculates the quadratic Bézier control points based on a [BezierCurveSection].
+  /// Calculates the actual quadratic Bézier control points from a [BezierCurveSection].
   ///
-  /// This uses the standard quadratic Bézier formula to compute the
-  /// control points needed for drawing the curve.
+  /// This method takes the user-defined start, top (control hint), and end points,
+  /// along with a proportion value, and computes the actual control points needed
+  /// for the quadratic Bézier curve using the standard mathematical formula.
+  ///
+  /// The [param.top] point is treated as a "hint" for where the curve should bend,
+  /// and the [param.proportion] determines how much influence this hint has on the
+  /// final curve shape.
+  ///
+  /// Returns [BezierCurveDots] containing the calculated control point (x1, y1) and
+  /// end point (x2, y2) for use with [Path.quadraticBezierTo].
   static BezierCurveDots calcCurveDots(BezierCurveSection param) {
     double x = (param.top.dx -
-            (param.start.dx * pow((1 - param.proportion), 2) +
-                pow(param.proportion, 2) * param.end.dx)) /
+        (param.start.dx * pow((1 - param.proportion), 2) +
+            pow(param.proportion, 2) * param.end.dx)) /
         (2 * param.proportion * (1 - param.proportion));
     double y = (param.top.dy -
-            (param.start.dy * pow((1 - param.proportion), 2) +
-                pow(param.proportion, 2) * param.end.dy)) /
+        (param.start.dy * pow((1 - param.proportion), 2) +
+            pow(param.proportion, 2) * param.end.dy)) /
         (2 * param.proportion * (1 - param.proportion));
 
     return BezierCurveDots(x, y, param.end.dx, param.end.dy);
   }
 
-  /// Iterates through the list of sections and adds them to the [Path].
+  /// Iterates through the list of curve sections and adds them to the [Path].
+  ///
+  /// For each [BezierCurveSection] in the list, this method:
+  /// 1. Calculates the actual control points using [calcCurveDots]
+  /// 2. Adds a quadratic Bézier curve to the path using [Path.quadraticBezierTo]
   void _eachPath(List<BezierCurveSection> list, Path path) {
     for (var element in list) {
       BezierCurveDots item = calcCurveDots(element);
@@ -128,7 +152,15 @@ class ProsteBezierCurve extends CustomClipper<Path> {
     }
   }
 
-  /// Builds the clipping path depending on the [position].
+  /// Builds the clipping path based on the specified [position].
+  ///
+  /// This method creates a closed path that:
+  /// 1. Forms three sides of a rectangle around the widget
+  /// 2. Replaces one side with the custom Bézier curve(s)
+  /// 3. Ensures the path stays within widget boundaries using min/max functions
+  ///
+  /// The path creation order varies by position to ensure proper curve placement
+  /// and correct path closure for clipping.
   @override
   Path getClip(Size size) {
     Path path = Path();
@@ -189,7 +221,13 @@ class ProsteBezierCurve extends CustomClipper<Path> {
 
 /// A [CustomClipper] that creates a path with **cubic (third-order) Bézier curves**.
 ///
-/// This allows for smoother, more complex curves compared to quadratic curves.
+/// This clipper provides smoother, more complex curves compared to quadratic curves
+/// by using cubic Bézier curves with four control points per section. The curves
+/// are calculated using a smoothing algorithm that creates natural-looking transitions
+/// between control points.
+///
+/// Each [ThirdOrderBezierCurveSection] defines four points (p1, p2, p3, p4) and a
+/// smoothing factor that controls how the curve interpolates between these points.
 ///
 /// Example:
 /// ```dart
@@ -197,11 +235,11 @@ class ProsteBezierCurve extends CustomClipper<Path> {
 ///   clipper: ProsteThirdOrderBezierCurve(
 ///     list: [
 ///       ThirdOrderBezierCurveSection(
-///         p1: Offset(0, 50),
-///         p2: Offset(50, 0),
-///         p3: Offset(150, 100),
-///         p4: Offset(200, 50),
-///         smooth: 0.5,
+///         p1: Offset(0, 50),      // Start point
+///         p2: Offset(50, 0),      // First control point
+///         p3: Offset(150, 100),   // Second control point
+///         p4: Offset(200, 50),    // End point
+///         smooth: 0.5,            // Smoothing factor (0.0 to 1.0)
 ///       ),
 ///     ],
 ///     position: ClipPosition.bottom,
@@ -217,6 +255,7 @@ class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
   bool reclip;
 
   /// A list of third-order curve definitions that describe the cubic Bézier sections to draw.
+  /// Each section represents one cubic Bézier curve segment with four control points.
   List<ThirdOrderBezierCurveSection> list;
 
   /// Defines which side of the widget will have the curved edge.
@@ -228,7 +267,18 @@ class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
     this.reclip = true,
   }) : assert(list.isNotEmpty);
 
-  /// Calculates the cubic Bézier control points based on a [ThirdOrderBezierCurveSection].
+  /// Calculates the cubic Bézier control points using a smoothing algorithm.
+  ///
+  /// This method takes four control points (p1, p2, p3, p4) and a smoothing factor,
+  /// then applies a sophisticated algorithm to create smooth cubic Bézier curves.
+  /// The algorithm:
+  /// 1. Calculates midpoints between consecutive control points
+  /// 2. Computes distances between points for weighted interpolation
+  /// 3. Creates intermediate control points using proportional weighting
+  /// 4. Applies the smoothing factor to adjust curve tension
+  ///
+  /// Returns [ThirdOrderBezierCurveDots] containing the calculated control points
+  /// (x1, y1), (x2, y2) and end point (x3, y3) for use with [Path.cubicTo].
   static ThirdOrderBezierCurveDots calcCurveDots(
       ThirdOrderBezierCurveSection param) {
     double x0 = param.p1.dx,
@@ -268,7 +318,11 @@ class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
         resultX1, resultY1, resultX2, resultY2, param.p4.dx, param.p4.dy);
   }
 
-  /// Iterates through the list of sections and adds them to the [Path].
+  /// Iterates through the list of curve sections and adds them to the [Path].
+  ///
+  /// For each [ThirdOrderBezierCurveSection] in the list, this method:
+  /// 1. Calculates the actual control points using [calcCurveDots]
+  /// 2. Adds a cubic Bézier curve to the path using [Path.cubicTo]
   void _eachPath(List<ThirdOrderBezierCurveSection> list, Path path) {
     for (var element in list) {
       ThirdOrderBezierCurveDots item = calcCurveDots(element);
@@ -276,7 +330,16 @@ class ProsteThirdOrderBezierCurve extends CustomClipper<Path> {
     }
   }
 
-  /// Builds the clipping path depending on the [position].
+  /// Builds the clipping path based on the specified [position].
+  ///
+  /// This method creates a closed path that:
+  /// 1. Forms three sides of a rectangle around the widget
+  /// 2. Replaces one side with the custom cubic Bézier curve(s)
+  /// 3. Ensures the path stays within widget boundaries using min/max functions
+  ///
+  /// The path creation order varies by position to ensure proper curve placement
+  /// and correct path closure for clipping. Uses the same logic as the quadratic
+  /// version but applies cubic curves instead.
   @override
   Path getClip(Size size) {
     Path path = Path();
